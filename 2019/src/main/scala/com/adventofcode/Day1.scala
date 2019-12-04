@@ -3,7 +3,7 @@ package com.adventofcode
 import scala.annotation.tailrec
 import scala.io.Source
 
-object Day1 extends App {
+object Day1 {
 
   def fuelSingle(mass: Int): Int = math.floor(mass/3).toInt - 2
 
