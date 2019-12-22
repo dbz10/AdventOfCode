@@ -31,19 +31,26 @@ object Day3 {
   val inputPath = "/Users/dben-zion/projects/AdventOfCode/2019/inputs/day03_input.txt"
   val v0 = Vector((0,0))
 
-
   val input = for(line <- Source.fromFile(inputPath).getLines())
     yield line.split(",").toList.map(x => x.toString)
 
-//  val input = List(
-//    List("R8","U5","L5","D3"),
-//    List("U7","R6","D4","L4")
-//  )
+  val output = for (line <- input.toList) yield line.foldLeft(v0)(updateVector)
+  val jointSet: List[(Int,Int)] = (output(0).tail intersect output(1).tail).toList
 
-  val output = for (line <- input.toList) yield line.foldLeft(v0)(updateVector).tail.toSet
-  val jointSet: List[(Int,Int)] = (output(0) intersect output(1)).toList
+  // Part 1
+  println(f"Minimum manhattan distance to intersection: ${jointSet.map( x => math.abs(x._1) + math.abs(x._2)).min}")
 
-  println(jointSet.map( x => math.abs(x._1) + math.abs(x._2)).min)
+  // Part 2
+  val measuredLines = output.map(x => x.zipWithIndex)
 
+  val stepsToReachPoint = jointSet.map( intersectionPoint => {
+    val minStepToReachPoint = measuredLines.map(
+      line => line find(_._1 == intersectionPoint) map (_._2) getOrElse(0)
+    )
+
+    minStepToReachPoint.sum
+  })
+
+  println(f"Minimum steps to reach a line intersection point: ${stepsToReachPoint.filter(_ != 0).min}")
 
 }
