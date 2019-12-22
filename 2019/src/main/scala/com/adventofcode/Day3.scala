@@ -1,5 +1,4 @@
 package com.adventofcode
-import scala.collection.immutable.HashSet
 import scala.io.Source
 
 
@@ -28,7 +27,7 @@ object Day3 {
     }
   }
 
-  val inputPath = "/Users/dben-zion/projects/AdventOfCode/2019/inputs/day03_input.txt"
+  val inputPath = "inputs/day03_input.txt"
   val v0 = Vector((0,0))
 
   val input = for(line <- Source.fromFile(inputPath).getLines())

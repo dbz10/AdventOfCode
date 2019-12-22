@@ -17,7 +17,7 @@ object Day1 {
     go(mass, 0)
   }
 
-  val inputPath = "/Users/dben-zion/projects/AdventOfCode/2019/inputs/day01_input.txt"
+  val inputPath = "inputs/day01_input.txt"
 
   val input = Source.fromFile(inputPath).getLines.toList
 
