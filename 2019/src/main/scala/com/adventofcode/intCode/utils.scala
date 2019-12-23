@@ -19,43 +19,32 @@ object utils {
     case (STOP, _) => identity[List[Int]]
   }
 
-  def addUpdate(program: microProgram): CodeAction =  (program.paramOneMode, program.paramTwoMode) match {
+  def mathUpdate(program: microProgram, op: (Int, Int) => Int): CodeAction =  (program.parameters(0), program.parameters(1)) match {
     case (POSITION, POSITION) => (l: List[Int]) => replace(l,
-      program.paramThreeValue,
-      l(program.paramOneValue) + l(program.paramTwoValue))
+      program.values(2),
+      op(l(program.values(0)), l(program.values(1)))
+    )
 
     case (POSITION, IMMEDIATE) => (l: List[Int]) => replace(l,
-      program.paramThreeValue,
-      l(program.paramOneValue) + program.paramTwoValue)
+      program.values(2),
+      op(l(program.values(0)), program.values(1))
+    )
 
     case (IMMEDIATE, POSITION) => (l: List[Int]) => replace(l,
-      program.paramThreeValue,
-      program.paramOneValue + l(program.paramTwoValue))
+      program.values(2),
+      op(program.values(0), l(program.values(1)))
+    )
 
     case (IMMEDIATE, IMMEDIATE) => (l: List[Int]) => replace(l,
-      program.paramThreeValue,
-      program.paramOneValue + program.paramTwoValue)
+      program.values(2),
+      op(program.values(0), program.values(1))
+    )
 
   }
 
-  def multiplyUpdate(program: microProgram): CodeAction = (program.paramOneMode, program.paramTwoMode) match {
-    case (POSITION, POSITION) => (l: List[Int]) => replace(l,
-      program.paramThreeValue,
-      l(program.paramOneValue) * l(program.paramTwoValue))
+  def addUpdate(program: microProgram): CodeAction = mathUpdate(program, _ + _)
+  def multiplyUpdate(program: microProgram): CodeAction = mathUpdate(program, _ * _)
 
-    case (POSITION, IMMEDIATE) => (l: List[Int]) => replace(l,
-      program.paramThreeValue,
-      l(program.paramOneValue) * program.paramTwoValue)
-
-    case (IMMEDIATE, POSITION) => (l: List[Int]) => replace(l,
-      program.paramThreeValue,
-      program.paramOneValue * l(program.paramTwoValue))
-
-    case (IMMEDIATE, IMMEDIATE) => (l: List[Int]) => replace(l,
-      program.paramThreeValue,
-      program.paramOneValue * program.paramTwoValue)
-
-  }
 
   def processProgramCode(inputList: List[Int]): List[Int] = {
     def go(currentHead: Int, z: List[Int] => List[Int], l: List[Int]): List[Int] => List[Int] = {
@@ -79,12 +68,8 @@ object utils {
 }
 
 case class microProgram(opCode: instruction,
-                        paramOneMode: mode,
-                        paramOneValue: Int,
-                        paramTwoMode: mode,
-                        paramTwoValue: Int,
-                        paramThreeMode: mode,
-                        paramThreeValue: Int
+                        parameters: List[mode],
+                        values: List[Int]
                        )
 
 object microProgram {
@@ -92,12 +77,9 @@ object microProgram {
    val opCodeSpec = OpCodeSpecification(l(0))
 
     new microProgram(opCodeSpec.opCode,
-      opCodeSpec.modeOne,
-      paramOneValue = l(1),
-      opCodeSpec.modeTwo,
-      paramTwoValue = l(2),
-      opCodeSpec.modeThree,
-      paramThreeValue = l(3))
+      List(opCodeSpec.modeOne, opCodeSpec.modeTwo, opCodeSpec.modeThree),
+      l.tail
+    )
   }
 
 

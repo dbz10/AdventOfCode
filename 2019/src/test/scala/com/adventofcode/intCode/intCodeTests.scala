@@ -34,22 +34,33 @@ class intCodeTests extends FunSuite{
   test("read a microprogram") {
     assert(
       microProgram(List(1002,4,3,4))  === new microProgram(
-        MULTIPLY, POSITION, 4, IMMEDIATE, 3, POSITION, 4)
+        MULTIPLY,
+        List(POSITION, IMMEDIATE, POSITION),
+        List(4,3,4)
+    )
     )
 
     assert(
       microProgram(List(1102,6,2,1))  === new microProgram(
-        MULTIPLY, IMMEDIATE, 6, IMMEDIATE, 2, POSITION, 1)
+        MULTIPLY,
+        List(IMMEDIATE, IMMEDIATE, POSITION),
+        List(6,2,1))
     )
 
     assert(
       microProgram(List(1101,4,3,4))  === new microProgram(
-        ADD, IMMEDIATE, 4, IMMEDIATE, 3, POSITION, 4)
+        ADD,
+        List(IMMEDIATE, IMMEDIATE, POSITION),
+        List(4,3,4)
+      )
     )
 
     assert(
       microProgram(List(1099,4,7,4))  === new microProgram(
-        STOP, POSITION, 4, IMMEDIATE, 7, POSITION, 4)
+        STOP,
+        List(POSITION, IMMEDIATE, POSITION),
+        List(4,7,4)
+      )
     )
   }
 
