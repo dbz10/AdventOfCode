@@ -13,12 +13,25 @@ object utils {
       case (v, _) => v
     })
 
-  def processMicroprogram(m: microProgram, inputValue: Int): CodeAction = (m.opCode, m) match {
-    case (ADD, codeParams) => addUpdate(codeParams)
-    case (MULTIPLY, codeParams) => multiplyUpdate(codeParams)
-    case (STOP, _) => identity[List[Int]]
-    case (INPUT, codeParams) => inputUpdate(codeParams, inputValue)
-    case (OUTPUT, codeParams) => outputUpdate(codeParams)
+  def processMicroprogram(m: microProgram, aux: auxiliaries): (CodeAction, auxiliaries) = (m.opCode, m) match {
+    case (ADD, codeParams) => (
+      addUpdate(codeParams), auxiliaries(aux.currentPosition + numInstructions(ADD), aux.inputs)
+    )
+
+    case (MULTIPLY, codeParams) => (
+      multiplyUpdate(codeParams), auxiliaries(aux.currentPosition + numInstructions(MULTIPLY), aux.inputs)
+    )
+
+    case (STOP, _) => (identity[List[Int]], auxiliaries(aux.currentPosition, aux.inputs))
+
+    case (INPUT, codeParams) => (
+      inputUpdate(codeParams, aux.inputs.head),
+      auxiliaries(aux.currentPosition + numInstructions(INPUT), aux.inputs.tail)
+    )
+
+    case (OUTPUT, codeParams) => (
+      outputUpdate(codeParams), auxiliaries(aux.currentPosition + numInstructions(OUTPUT), aux.inputs)
+    )
   }
 
   def mathUpdate(program: microProgram, op: (Int, Int) => Int): CodeAction =  (program.parameters(0), program.parameters(1)) match {
@@ -63,6 +76,8 @@ object utils {
 
 
 }
+
+case class auxiliaries(currentPosition: Int, inputs: List[Int])
 
 case class microProgram(opCode: instruction,
                         parameters: List[mode],
