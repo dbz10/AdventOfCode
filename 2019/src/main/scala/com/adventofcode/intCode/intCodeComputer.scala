@@ -1,27 +1,27 @@
 package com.adventofcode.intCode
 import com.adventofcode.intCode.utils._
 import com.adventofcode.intCode.instruction._
+import com.adventofcode.intCode.microProgram.OpCodeSpecification
 import com.adventofcode.intCode.mode._
 
 
 object intCodeComputer {
 
-  def processProgramCode(inputList: List[Int]): List[Int] = {
-    def go(currentHead: Int, z: List[Int] => List[Int], l: List[Int]): List[Int] => List[Int] = {
-      val curOperation = instruction(l(currentHead))
-      if ( curOperation == STOP) z
+  def processProgramCode(code: List[Int], inputValue: Int = 0): List[Int] = {
+    def go(currentHead: Int, l: List[Int]): List[Int]  = {
+      val curOperation =  OpCodeSpecification(l(currentHead)).opCode
+      if ( curOperation == STOP) l
       else {
         val curInstructionLength = numInstructions(curOperation)
         val mP = microProgram(l.slice(currentHead, currentHead+curInstructionLength))
-        val codeAction = processMicroprogram(mP)
+        val codeAction = processMicroprogram(mP, inputValue)
 
         go(currentHead + curInstructionLength,
-          (lv: List[Int]) => codeAction(z(lv)),
-          l)
+          codeAction(l))
       }
     }
 
-    go(0, identity[List[Int]], inputList)(inputList)
+    go(0, code)
   }
 
 

@@ -13,10 +13,12 @@ object utils {
       case (v, _) => v
     })
 
-  def processMicroprogram(m: microProgram): CodeAction = (m.opCode, m) match {
+  def processMicroprogram(m: microProgram, inputValue: Int): CodeAction = (m.opCode, m) match {
     case (ADD, codeParams) => addUpdate(codeParams)
     case (MULTIPLY, codeParams) => multiplyUpdate(codeParams)
     case (STOP, _) => identity[List[Int]]
+    case (INPUT, codeParams) => inputUpdate(codeParams, inputValue)
+    case (OUTPUT, codeParams) => outputUpdate(codeParams)
   }
 
   def mathUpdate(program: microProgram, op: (Int, Int) => Int): CodeAction =  (program.parameters(0), program.parameters(1)) match {
@@ -44,25 +46,12 @@ object utils {
 
   def addUpdate(program: microProgram): CodeAction = mathUpdate(program, _ + _)
   def multiplyUpdate(program: microProgram): CodeAction = mathUpdate(program, _ * _)
-
-
-  def processProgramCode(inputList: List[Int]): List[Int] = {
-    def go(currentHead: Int, z: List[Int] => List[Int], l: List[Int]): List[Int] => List[Int] = {
-      if (l(currentHead) == 99) z
-      else {
-        val quadruple = l.slice(currentHead, currentHead+4)
-        val curInstructionLength = quadruple.mkString.length
-        val mP = microProgram(l.slice(currentHead, currentHead+4))
-        val codeAction = processMicroprogram(mP)
-
-        go(currentHead + curInstructionLength,
-          (lv: List[Int]) => codeAction(z(lv)),
-          l)
-      }
-    }
-
-    go(0, identity[List[Int]], inputList)(inputList)
+  def inputUpdate(program: microProgram, input: Int): CodeAction = (l: List[Int]) => replace(l, program.values(0), input)
+  def outputUpdate(program: microProgram): CodeAction = (l: List[Int]) => {
+    println(f"Output: ${l(program.values(0))}")
+    l
   }
+
 
   val numInstructions = Map(
     STOP -> 1,
