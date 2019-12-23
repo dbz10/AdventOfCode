@@ -1,16 +1,18 @@
 package com.adventofcode.intCode
 import com.adventofcode.intCode.utils._
+import com.adventofcode.intCode.instruction._
+import com.adventofcode.intCode.mode._
 
 
 object intCodeComputer {
 
   def processProgramCode(inputList: List[Int]): List[Int] = {
     def go(currentHead: Int, z: List[Int] => List[Int], l: List[Int]): List[Int] => List[Int] = {
-      if (l(currentHead) == 99) z
+      val curOperation = instruction(l(currentHead))
+      if ( curOperation == STOP) z
       else {
-        val quadruple = l.slice(currentHead, currentHead+4)
-        val curInstructionLength = 4
-        val mP = microProgram(l.slice(currentHead, currentHead+4))
+        val curInstructionLength = numInstructions(curOperation)
+        val mP = microProgram(l.slice(currentHead, currentHead+curInstructionLength))
         val codeAction = processMicroprogram(mP)
 
         go(currentHead + curInstructionLength,

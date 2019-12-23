@@ -64,6 +64,14 @@ object utils {
     go(0, identity[List[Int]], inputList)(inputList)
   }
 
+  val numInstructions = Map(
+    STOP -> 1,
+    ADD -> 4,
+    MULTIPLY -> 4,
+    INPUT -> 2,
+    OUTPUT -> 2
+  )
+
 
 }
 
