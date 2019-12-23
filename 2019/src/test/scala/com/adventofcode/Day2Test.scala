@@ -1,48 +1,34 @@
 package com.adventofcode
+import com.adventofcode.Day2.input
+import com.adventofcode.intCode.intCodeComputer.processProgramCode
+import com.adventofcode.intCode.utils.replace
 import org.scalatest.FunSuite
-import com.adventofcode.Day2._
 
-class Day2Test extends FunSuite{
-  test("processQuadruple") {
-    val list1 = List(1,0,1,3)
-    val list2 = List(1,1,2,7,10,20,30,40)
+import scala.io.Source
 
-    val list3 = List(2,0,1,3)
-    val list4 = List(2,1,2,7,10,20,30,40)
+class Day2Test extends FunSuite {
+    // intcode is now separately tested, so here just regressions
+  test("Part One") {
 
-    assert(
-      processQuadruple(list1.slice(0,4), list1) === List(1,0,1,1)
-    )
+    val outputPartOne = processProgramCode(input)
 
-    assert(
-      processQuadruple(list2.slice(0,4), list2) === List(1,1,2,7,10,20,30,3)
-    )
-
-    assert(
-      processQuadruple(list3.slice(0,4), list3) === List(2,0,1,0)
-    )
-
-    assert(
-      processQuadruple(list4.slice(0,4), list4) === List(2,1,2,7,10,20,30,2)
-    )
-
+    assert (outputPartOne.head === 3562672)
   }
 
-  test("processOpCode") {
-    assert (
-      processCode(List(1,0,0,0,99)) === List(2,0,0,0,99)
-    )
+  test( "Part Two") {
+    val resultSetPartTwo: Seq[Int] = for {
+      noun <- 0 to 99
+      verb <- 0 to 99
+      if (processProgramCode(
+        replace(
+          replace(input, 1, noun), 2, verb
+        )
+      ).head == 19690720)
 
-    assert (
-      processCode(List(2,3,0,3,99)) === List( 2,3,0,6,99)
-    )
 
-    assert (
-      processCode(List(2,4,4,5,99,0)) === List(2,4,4,5,99,9801)
-    )
+    } yield 100*noun + verb
 
-    assert (
-      processCode(List(1,1,1,4,99,5,6,0,99)) === List(30,1,1,4,2,5,6,0,99)
-    )
+    assert( resultSetPartTwo(0) === 8250)
   }
+
 }
