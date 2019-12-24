@@ -8,19 +8,19 @@ import com.adventofcode.intCode.mode._
 object intCodeComputer {
 
   def processProgramCode(code: List[Int], inputs: List[Int] = List(0)): List[Int] = {
-    def go(aux: auxiliaries, l: List[Int]): List[Int]  = {
-      val curOperation =  OpCodeSpecification(l(aux.currentPosition)).opCode
-      if ( curOperation == STOP) l
+    def go(cs: state): List[Int]  = {
+      val curOperation =  OpCodeSpecification(cs.currentCode(cs.currentPosition)).opCode
+      if ( curOperation == STOP) cs.currentCode
       else {
         val curInstructionLength = numInstructions(curOperation)
-        val mP = microProgram(l.slice(aux.currentPosition, aux.currentPosition+curInstructionLength))
-        val (codeAction, newAux) = processMicroprogram(mP, aux)
+        val mP = microProgram(cs.currentCode.slice(cs.currentPosition, cs.currentPosition + curInstructionLength))
+        val newState = processMicroprogram(mP, cs)
 
-        go(newAux, codeAction(l))
+        go(newState)
       }
     }
-    val auxZero = auxiliaries(currentPosition = 0, inputs = inputs)
-    go(auxZero, code)
+    val initState = state(currentCode = code, currentPosition = 0, inputs = inputs)
+    go(initState)
   }
 
 

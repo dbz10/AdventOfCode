@@ -5,6 +5,7 @@ import com.adventofcode.intCode.instruction._
 import com.adventofcode.intCode.mode._
 import com.adventofcode.intCode.microProgram._
 import com.adventofcode.intCode.utils._
+import com.adventofcode.intCode.intCodeComputer._
 
 class intCodeTests extends FunSuite{
 
@@ -111,4 +112,43 @@ class intCodeTests extends FunSuite{
     )
 
   }
+
+  test("interpret a parameter mode") {
+    val listy = List(0,1,2,3,4,5)
+    val mp = new microProgram(ADD,
+      List(POSITION, IMMEDIATE),
+      List(4,5)
+    )
+
+    assert(
+      interpreted(mp, 0)(listy) === 4
+    )
+
+    assert(
+      interpreted(mp, 1)(listy) === 5
+    )
+
+  }
+
+  test("god even knows what is wrong if this test fails"){
+    val equalCodeOne = List(3,9,8,9,10,9,4,9,99,-1,8)
+    val equalCodeTwo = List(3,3,1108,-1,8,3,4,3,99)
+    val lessThanCodeOne = List(3,9,7,9,10,9,4,9,99,-1,8)
+    val lessThanCodeTwo = List(3,3,1107,-1,8,3,4,3,99)
+
+    println("The following should output 1 ¯\\_(ツ)_/¯")
+    processProgramCode(equalCodeOne, List(8))
+    processProgramCode(equalCodeTwo, List(8))
+    processProgramCode(lessThanCodeOne, List(5))
+    processProgramCode(lessThanCodeTwo, List(4))
+
+    println("The following should output 0 ¯\\_(ツ)_/¯")
+    processProgramCode(equalCodeOne, List(5))
+    processProgramCode(equalCodeTwo, List(9))
+    processProgramCode(lessThanCodeOne, List(10))
+    processProgramCode(lessThanCodeTwo, List(11))
+
+
+  }
+
 }

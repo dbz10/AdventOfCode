@@ -13,48 +13,79 @@ object utils {
       case (v, _) => v
     })
 
-  def processMicroprogram(m: microProgram, aux: auxiliaries): (CodeAction, auxiliaries) = (m.opCode, m) match {
-    case (ADD, codeParams) => (
-      addUpdate(codeParams), auxiliaries(aux.currentPosition + numInstructions(ADD), aux.inputs)
+  def processMicroprogram(m: microProgram, cs: state): state = (m.opCode, m) match {
+    case (ADD, codeParams) => state(
+      addUpdate(codeParams)(cs.currentCode),
+      cs.currentPosition + numInstructions(ADD),
+      cs.inputs
     )
 
-    case (MULTIPLY, codeParams) => (
-      multiplyUpdate(codeParams), auxiliaries(aux.currentPosition + numInstructions(MULTIPLY), aux.inputs)
+    case (MULTIPLY, codeParams) => state(
+      multiplyUpdate(codeParams)(cs.currentCode),
+      cs.currentPosition + numInstructions(MULTIPLY),
+      cs.inputs
     )
 
-    case (STOP, _) => (identity[List[Int]], auxiliaries(aux.currentPosition, aux.inputs))
-
-    case (INPUT, codeParams) => (
-      inputUpdate(codeParams, aux.inputs.head),
-      auxiliaries(aux.currentPosition + numInstructions(INPUT), aux.inputs.tail)
+    case (STOP, _) => state(
+      cs.currentCode,
+      cs.currentPosition,
+      cs.inputs
     )
 
-    case (OUTPUT, codeParams) => (
-      outputUpdate(codeParams), auxiliaries(aux.currentPosition + numInstructions(OUTPUT), aux.inputs)
+    case (INPUT, codeParams) => state(
+      inputUpdate(codeParams, cs.inputs.head)(cs.currentCode),
+      cs.currentPosition + numInstructions(INPUT),
+      cs.inputs.tail
     )
+
+    case (OUTPUT, codeParams) => state(
+      outputUpdate(codeParams)(cs.currentCode),
+      cs.currentPosition + numInstructions(OUTPUT),
+      cs.inputs
+    )
+
+    case (JumpIfTrue, codeParams) => state(
+      cs.currentCode,
+      if (interpreted(codeParams,0)(cs.currentCode) != 0) interpreted(codeParams,1)(cs.currentCode) else cs.currentPosition + numInstructions(JumpIfTrue),
+      cs.inputs
+    )
+
+    case (JumpIfFalse, codeParams) => state(
+      cs.currentCode,
+      if (interpreted(codeParams,0)(cs.currentCode) == 0) interpreted(codeParams,1)(cs.currentCode) else cs.currentPosition + numInstructions(JumpIfFalse),
+      cs.inputs
+    )
+
+    case (LESSTHAN, codeParams) => state(
+      lessThanUpdate(codeParams)(cs.currentCode),
+      cs.currentPosition + numInstructions(LESSTHAN),
+      cs.inputs
+    )
+
+    case (EQUALS, codeParams) => state(
+      equalsUpdate(codeParams)(cs.currentCode),
+      cs.currentPosition + numInstructions(EQUALS),
+      cs.inputs
+    )
+
+
   }
 
-  def mathUpdate(program: microProgram, op: (Int, Int) => Int): CodeAction =  (program.parameters(0), program.parameters(1)) match {
-    case (POSITION, POSITION) => (l: List[Int]) => replace(l,
-      program.values(2),
-      op(l(program.values(0)), l(program.values(1)))
-    )
 
-    case (POSITION, IMMEDIATE) => (l: List[Int]) => replace(l,
-      program.values(2),
-      op(l(program.values(0)), program.values(1))
-    )
 
-    case (IMMEDIATE, POSITION) => (l: List[Int]) => replace(l,
-      program.values(2),
-      op(program.values(0), l(program.values(1)))
-    )
 
-    case (IMMEDIATE, IMMEDIATE) => (l: List[Int]) => replace(l,
-      program.values(2),
-      op(program.values(0), program.values(1))
-    )
+  def interpreted(program: microProgram, i: Int): List[Int] => Int = {
+    // reads the parameter mode for a variable and returns the correct value for value i
+    (program.parameters(i), program.values(i)) match {
+      case (POSITION, v) => (l: List[Int]) => l(v)
+      case (IMMEDIATE, v) => (l: List[Int]) => v
+    }
+  }
 
+  def mathUpdate(program: microProgram, op: (Int, Int) => Int): CodeAction =  {
+    (l: List[Int]) => replace(l, program.values(2), op(
+      interpreted(program,0)(l), interpreted(program,1)(l)
+    ))
   }
 
   def addUpdate(program: microProgram): CodeAction = mathUpdate(program, _ + _)
@@ -64,20 +95,37 @@ object utils {
     println(f"Output: ${l(program.values(0))}")
     l
   }
+  def jumpIfTrueUpdate(program: microProgram): CodeAction = identity[List[Int]]
+  def jumpIfFalseUpdate(program: microProgram): CodeAction = identity[List[Int]]
+  def lessThanUpdate(program: microProgram): CodeAction = {
+    (l: List[Int]) => if (interpreted(program,0)(l) < interpreted(program,1)(l)) replace(l, program.values(2), 1)
+    else replace(l, program.values(2), 0)
+  }
+  def equalsUpdate(program: microProgram): CodeAction = {
+    (l: List[Int]) => if (interpreted(program,0)(l) == interpreted(program,1)(l)) replace(l, program.values(2), 1)
+    else replace(l, program.values(2), 0)
+  }
 
 
-  val numInstructions = Map(
-    STOP -> 1,
-    ADD -> 4,
-    MULTIPLY -> 4,
-    INPUT -> 2,
-    OUTPUT -> 2
-  )
+
+
+      val numInstructions = Map(
+        STOP -> 1,
+        ADD -> 4,
+        MULTIPLY -> 4,
+        INPUT -> 2,
+        OUTPUT -> 2,
+        JumpIfTrue -> 3,
+        JumpIfFalse -> 3,
+        LESSTHAN -> 4,
+        EQUALS -> 4
+      )
+
 
 
 }
 
-case class auxiliaries(currentPosition: Int, inputs: List[Int])
+case class state(currentCode: List[Int], currentPosition: Int, inputs: List[Int])
 
 case class microProgram(opCode: instruction,
                         parameters: List[mode],
